@@ -11,6 +11,10 @@ class modelo extends Model
 
     protected $fillable = ['nome', 'marca_id'];
 
+     public function produtos()
+    {
+        return $this->belongsToMany(Produto::class, 'modelo_produto');
+    }
     public function marca()
     {
         return $this->belongsTo(Marca::class);
