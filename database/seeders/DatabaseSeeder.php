@@ -25,8 +25,8 @@ class DatabaseSeeder extends Seeder
         //     ModeloSeeder::class,
         // ]);
 
-         $this->call([
-        CategoriaSeeder::class,
-    ]);
+    //      $this->call([
+    //     CategoriaSeeder::class,
+    // ]);
     }
 }
