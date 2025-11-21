@@ -18,7 +18,8 @@ class AuthController extends Controller
             'email'    => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6',
             'phone'    => 'nullable|string|max:20',
-            'role'     => 'in:cliente,gestor,admin,master'
+            'role'     => 'in:cliente,gestor,admin,master,vendedor',
+            'active'   => 'boolean'
         ]);
 
         $user = User::create([
@@ -27,6 +28,7 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
             'phone'    => $request->phone,
             'role'     => $request->role ?? 'cliente',
+            'active'   =>  $request->active,
         ]);
 
         return response()->json([
@@ -52,8 +54,18 @@ class AuthController extends Controller
                 'email' => ['As credenciais fornecidas estão incorretas.'],
             ]);
         }
+        
+        if (! $user->active) {
+            throw ValidationException::withMessages([
+                'email' => ['A sua conta está desativada. Contacte o administrador.'],
+            ]);
+        }
+
 
         $token = $user->createToken('token')->plainTextToken;
+
+        $user->last_login = now();
+        $user->save();
 
         return response()->json([
             'token' => $token,
@@ -123,5 +135,74 @@ class AuthController extends Controller
         ]);
 
         return response()->json(['message' => 'Senha alterada com sucesso.',  $user]);
+    }
+
+    public function listUsersAllowed()
+    {
+        // Lista apenas os roles permitidos
+        $allowedRoles = ['gestor', 'admin', 'vendedor'];
+
+        $users = User::whereIn('role', $allowedRoles)
+            ->orderBy('name', 'asc')
+            ->get();
+
+        return response()->json([
+            'message' => 'Lista de usuários carregada com sucesso.',
+            'users'   => $users
+        ], 200);
+    }
+
+    public function updateUser(Request $request, $id)
+    {
+        // Validar o request
+        $request->validate([
+            'name'     => 'sometimes|string|max:255',
+            'email'    => 'sometimes|string|email|max:255|unique:users,email,' . $id,
+            'phone'    => 'sometimes|string|max:20',
+            'role'     => 'sometimes|in:cliente,gestor,admin,master,vendedor',
+            'active'   => 'sometimes|boolean',
+            'password' => 'sometimes|string|min:6',
+        ]);
+
+        // Buscar o usuário
+        $user = User::find($id);
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'Usuário não encontrado.'
+            ], 404);
+        }
+
+        // Atualizar os dados
+        if ($request->has('name')) {
+            $user->name = $request->name;
+        }
+
+        if ($request->has('email')) {
+            $user->email = $request->email;
+        }
+
+        if ($request->has('phone')) {
+            $user->phone = $request->phone;
+        }
+
+        if ($request->has('role')) {
+            $user->role = $request->role;
+        }
+
+        if ($request->has('active')) {
+            $user->active = $request->active;
+        }
+
+        if ($request->has('password') && !empty($request->password)) {
+            $user->password = Hash::make($request->password);
+        }
+
+        $user->save();
+
+        return response()->json([
+            'message' => 'Usuário atualizado com sucesso.',
+            'user'    => $user
+        ], 200);
     }
 }

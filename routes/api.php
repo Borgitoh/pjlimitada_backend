@@ -1,18 +1,19 @@
 <?php
 
-use App\Http\Controllers\Api\AvaliacaoController;
-use App\Http\Controllers\Api\BodykitController;
-use App\Http\Controllers\Api\CategoriaPecaController;
-use App\Http\Controllers\Api\CupomDescontoController;
-use App\Http\Controllers\Api\EnderecoController;
-use App\Http\Controllers\Api\ItensPedidoController;
-use App\Http\Controllers\Api\ItensSolicitacaoServicoController;
-use App\Http\Controllers\Api\PagamentoController;
-use App\Http\Controllers\Api\PecaController;
-use App\Http\Controllers\Api\PedidoController;
-use App\Http\Controllers\Api\RastreamentoPedidoController;
-use App\Http\Controllers\Api\ServicoController;
-use App\Http\Controllers\Api\SolicitacaoServicoController;
+use App\Http\Controllers\AvaliacaoController;
+use App\Http\Controllers\BodykitController;
+use App\Http\Controllers\CategoriaPecaController;
+use App\Http\Controllers\CupomDescontoController;
+use App\Http\Controllers\EnderecoController;
+use App\Http\Controllers\ItensPedidoController;
+use App\Http\Controllers\ItensSolicitacaoServicoController;
+use App\Http\Controllers\PagamentoController;
+
+use App\Http\Controllers\PecaController;
+use App\Http\Controllers\PedidoController;
+use App\Http\Controllers\RastreamentoPedidoController;
+use App\Http\Controllers\ServicoController;
+use App\Http\Controllers\SolicitacaoServicoController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\MarcaController;
@@ -40,6 +41,8 @@ Route::apiResource('categorias', CategoriaController::class);
 
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/get-user', [AuthController::class, 'listUsersAllowed']);
+    Route::put('/update-user/{id}', [AuthController::class, 'updateUser']);
     Route::post('/change-password', [AuthController::class, 'changePassword']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::apiResource('marcas', MarcaController::class);
