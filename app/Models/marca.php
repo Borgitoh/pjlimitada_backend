@@ -8,7 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 class marca extends Model
 {
     use HasFactory;
-    protected $fillable = ['nome', 'imagem'];
+    protected $fillable = ['nome', 'imagem', 'ativo'];
+
+      protected $casts = [
+        'ativo' => 'boolean'
+    ];
 
     public function modelos()
     {

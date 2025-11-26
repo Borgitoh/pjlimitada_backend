@@ -15,6 +15,9 @@ return new class extends Migration
             $table->id();
             $table->string('nome');
             $table->foreignId('marca_id')->constrained('marcas')->onDelete('cascade');
+             $table->boolean('ativo')->default(true);
+             $table->string('version')->default(false);
+            $table->year('year');
             $table->timestamps();
         });
     }

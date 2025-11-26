@@ -14,7 +14,19 @@ class MarcaController extends Controller
     {
         return Marca::all();
     }
+    public function listaMarcas()
+    {
+        $marcas = Marca::withCount('modelos')->get();
 
+        return $marcas->map(function ($m) {
+            return [
+                'id' => $m->id,
+                'name' => $m->nome,
+                'active' => (bool) $m->ativo,
+                'modelsCount' => $m->modelos_count,
+            ];
+        });
+    }
     /**
      * Show the form for creating a new resource.
      */
@@ -28,36 +40,14 @@ class MarcaController extends Controller
         return Marca::create($data);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
+    
     public function show($id)
     {
-         return Marca::with('modelos')->findOrFail($id);
+        return Marca::with('modelos')->findOrFail($id);
     }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(marca $marca)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, $id)
     {
-          $marca = Marca::findOrFail($id);
+        $marca = Marca::findOrFail($id);
 
         $data = $request->validate([
             'nome' => 'sometimes|required|string|max:255',

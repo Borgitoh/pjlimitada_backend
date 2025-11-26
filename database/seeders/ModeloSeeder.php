@@ -78,9 +78,11 @@ class ModeloSeeder extends Seeder
             $marca = Marca::where('nome', $marcaNome)->first();
             if ($marca) {
                 foreach ($nomes as $nome) {
+                    $ano = rand(1995, 2025); 
                     Modelo::create([
                         'nome' => $nome,
                         'marca_id' => $marca->id,
+                        'year' => $ano
                     ]);
                 }
             }
