@@ -21,8 +21,6 @@ class ServicoController extends Controller
             'descricao' => 'nullable',
             'preco' => 'required|numeric',
             'duracao' => 'nullable',
-            'imagem' => 'nullable',
-            'estoque' => 'nullable',
             'ativo' => 'nullable'
         ]);
 
@@ -41,11 +39,5 @@ class ServicoController extends Controller
         $data = $request->all();
         $item->update($data);
         return response()->json($item);
-    }
-
-    public function destroy($id)
-    {
-        Servico::findOrFail($id)->delete();
-        return response()->noContent();
     }
 }

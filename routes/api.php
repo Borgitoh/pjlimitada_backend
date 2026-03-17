@@ -48,7 +48,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('marcas', MarcaController::class);
     Route::get('/marcas-list', [MarcaController::class, 'listaMarcas']);
     Route::apiResource('modelos', ModeloController::class);
+    Route::get('/produtos/ativos', [ProdutoController::class, 'getProdutosAtivo']);
     Route::apiResource('produtos', ProdutoController::class);
+    Route::patch('/produtos/{id}/estoque', [ProdutoController::class, 'updateStock']);
+    Route::patch('/produtos/{id}/toggle-ativo', [ProdutoController::class, 'toggleAtivo']);
+
     Route::apiResource('pecas', PecaController::class);
     Route::apiResource('bodykit', BodykitController::class);
     Route::apiResource('servico', ServicoController::class);

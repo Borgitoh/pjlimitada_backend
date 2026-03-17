@@ -9,13 +9,17 @@ class Produto extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'nome', 'descricao', 'preco', 'estoque', 'tipo', 'imagem', 'categoria_id'
+        'name', 'description', 'preco', 'estoque', 'min_stock', 'tipo', 'imagem', 'categoria_id', 'ativo' ,'min_stock',
     ];
 
     public function categoria()
     {
         return $this->belongsTo(Categoria::class);
     }
+
+     protected $casts = [
+        'ativo' => 'boolean',
+    ];
 
     public function modelos()
     {

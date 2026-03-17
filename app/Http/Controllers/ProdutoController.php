@@ -15,14 +15,16 @@ class ProdutoController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nome' => 'required|string',
-            'descricao' => 'nullable|string',
+            'name' => 'required|string',
+            'description' => 'nullable|string',
             'preco' => 'required|numeric',
             'estoque' => 'required|integer',
             'tipo' => 'required|in:peca,bodykit',
             'imagem' => 'nullable|string',
             'categoria_id' => 'required|exists:categorias,id',
             'modelos' => 'array',
+            'ativo' => 'boolean',
+            'minStock' => 'sometimes|required|integer|min:0',
             'modelos.*' => 'exists:modelos,id',
         ]);
 
@@ -51,6 +53,7 @@ class ProdutoController extends Controller
             'tipo' => 'sometimes|required|in:peca,bodykit',
             'imagem' => 'nullable|string',
             'categoria_id' => 'sometimes|required|exists:categorias,id',
+            'minStock' => 'sometimes|required|integer|min:0',
             'modelos' => 'array',
             'modelos.*' => 'exists:modelos,id',
         ]);
@@ -62,10 +65,32 @@ class ProdutoController extends Controller
 
         return response()->json($produto->load('categoria', 'modelos'));
     }
-
-    public function destroy($id)
+    public function updateStock(Request $request, $id)
     {
-        Produto::findOrFail($id)->delete();
-        return response()->noContent();
+        $request->validate([
+            'estoque' => 'required|integer|min:0',
+        ]);
+
+        $produto = Produto::findOrFail($id);
+        $produto->estoque = $request->estoque;
+        $produto->save();
+
+        return response()->json($produto);
+    }
+    public function getProdutosAtivo()
+    {
+        return Produto::with(['categoria', 'modelos'])
+            ->where('ativo', true)
+            ->get(); // get() retorna array vazio se não houver registros
+    }
+
+
+    public function toggleAtivo($id)
+    {
+        $produto = Produto::findOrFail($id);
+        $produto->ativo = !$produto->ativo;
+        $produto->save();
+
+        return response()->json($produto->load('categoria', 'modelos'));
     }
 }
