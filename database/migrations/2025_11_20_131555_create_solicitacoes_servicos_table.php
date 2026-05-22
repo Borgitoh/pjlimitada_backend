@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('telefone');
             $table->string('veiculo');
             $table->text('descricao_adicional')->nullable();
+            $table->boolean('ativo')->default(true);
             $table->date('data_preferida')->nullable();
             $table->timestamp('data_solicitacao')->useCurrent();
             $table->enum('status', ['pendente', 'confirmada', 'em_andamento', 'concluida', 'cancelada'])->default('pendente');

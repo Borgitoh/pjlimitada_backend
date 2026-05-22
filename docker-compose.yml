@@ -1,4 +1,4 @@
-version: "3.8"
+#version: "3.8"
 
 services:
   app:
@@ -8,8 +8,7 @@ services:
       - .:/var/www
     networks:
       - laravel
-    depends_on:
-      - mysql
+
 
   webserver:
     image: nginx:latest
@@ -23,37 +22,6 @@ services:
       - laravel
     depends_on:
       - app
-
-  mysql:
-    image: mysql:8
-    container_name: laravel_mysql
-    restart: always
-    environment:
-      MYSQL_DATABASE: pjlimitada
-      MYSQL_ROOT_PASSWORD: laravel
-      MYSQL_PASSWORD: laravel
-      MYSQL_USER: laravel
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysqldata:/var/lib/mysql
-    networks:
-      - laravel
-
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin:latest
-    container_name: laravel_phpmyadmin
-    restart: always
-    ports:
-      - "8080:80"
-    environment:
-      PMA_HOST: mysql
-      PMA_USER: laravel
-      PMA_PASSWORD: laravel
-    networks:
-      - laravel
-    depends_on:
-      - mysql
 
 networks:
   laravel:

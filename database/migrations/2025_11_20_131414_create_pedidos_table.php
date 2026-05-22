@@ -22,6 +22,7 @@ return new class extends Migration
             $table->decimal('impostos', 10, 2);
             $table->decimal('frete', 10, 2);
             $table->decimal('total', 10, 2);
+            $table->boolean('ativo')->default(true);
             $table->text('observacoes')->nullable();
             $table->timestamps();
         });

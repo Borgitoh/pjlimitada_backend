@@ -14,21 +14,23 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'name'     => 'required|string|max:255',
+            'nome'     => 'required|string|max:255',
+            'nif'     => 'required|string|max:255',
             'email'    => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6',
-            'phone'    => 'nullable|string|max:20',
+            'senha' => 'required|string|min:6',
+            'telfoene'    => 'nullable|string|max:20',
             'role'     => 'in:cliente,gestor,admin,master,vendedor',
-            'active'   => 'boolean'
+            'activo'   => 'boolean'
         ]);
 
         $user = User::create([
-            'name'     => $request->name,
+            'nome'     => $request->nome,
+            'nif'     => $request->nif,
             'email'    => $request->email,
-            'password' => Hash::make($request->password),
-            'phone'    => $request->phone,
+            'password' => Hash::make($request->senha),
+            'telfoene'    => $request->telfoene,
             'role'     => $request->role ?? 'cliente',
-            'active'   =>  $request->active,
+            'activo'   =>  $request->activo,
         ]);
 
         return response()->json([
@@ -42,20 +44,20 @@ class AuthController extends Controller
     {
         $request->validate([
             'login'    => 'required|string',
-            'password' => 'required|string',
+            'senha' => 'required|string',
         ]);
 
         $user = User::where('email', $request->login)
-            ->orWhere('phone', $request->login)
+            ->orWhere('telfoene', $request->login)
             ->first();
 
-        if (! $user || ! Hash::check($request->password, $user->password)) {
+        if (! $user || ! Hash::check($request->senha, $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['As credenciais fornecidas estão incorretas.'],
             ]);
         }
         
-        if (! $user->active) {
+        if (! $user->activo) {
             throw ValidationException::withMessages([
                 'email' => ['A sua conta está desativada. Contacte o administrador.'],
             ]);
@@ -100,14 +102,14 @@ class AuthController extends Controller
     {
         $request->validate([
             'email'    => 'required|email',
-            'password' => 'required|string|min:6|confirmed',
+            'senha' => 'required|string|min:6|confirmed',
         ]);
 
         $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation',),
+            $request->only('email', 'senha', 'senha_confirmation',),
             function ($user, $password) {
                 $user->forceFill([
-                    'password' => Hash::make($password),
+                    'senha' => Hash::make($password),
                 ])->save();
             }
         );
@@ -126,7 +128,7 @@ class AuthController extends Controller
 
         $user = $request->user();
 
-        if (! Hash::check($request->current_password, $user->password)) {
+        if (! Hash::check($request->current_password, $user->senha)) {
             return response()->json(['message' => 'Senha atual incorreta.'], 400);
         }
 
@@ -156,12 +158,12 @@ class AuthController extends Controller
     {
         // Validar o request
         $request->validate([
-            'name'     => 'sometimes|string|max:255',
+            'nome'     => 'sometimes|string|max:255',
             'email'    => 'sometimes|string|email|max:255|unique:users,email,' . $id,
-            'phone'    => 'sometimes|string|max:20',
+            'telefone'    => 'sometimes|string|max:20',
             'role'     => 'sometimes|in:cliente,gestor,admin,master,vendedor',
-            'active'   => 'sometimes|boolean',
-            'password' => 'sometimes|string|min:6',
+            'activo'   => 'sometimes|boolean',
+            'senha' => 'sometimes|string|min:6',
         ]);
 
         // Buscar o usuário
@@ -174,28 +176,28 @@ class AuthController extends Controller
         }
 
         // Atualizar os dados
-        if ($request->has('name')) {
-            $user->name = $request->name;
+        if ($request->has('nome')) {
+            $user->nome = $request->nome;
         }
 
         if ($request->has('email')) {
             $user->email = $request->email;
         }
 
-        if ($request->has('phone')) {
-            $user->phone = $request->phone;
+        if ($request->has('telefone')) {
+            $user->telefone = $request->telefone;
         }
 
         if ($request->has('role')) {
             $user->role = $request->role;
         }
 
-        if ($request->has('active')) {
-            $user->active = $request->active;
+        if ($request->has('activo')) {
+            $user->activo = $request->activo;
         }
 
-        if ($request->has('password') && !empty($request->password)) {
-            $user->password = Hash::make($request->password);
+        if ($request->has('senha') && !empty($request->senha)) {
+            $user->senha = Hash::make($request->senha);
         }
 
         $user->save();
