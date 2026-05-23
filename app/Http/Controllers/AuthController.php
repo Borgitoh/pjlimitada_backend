@@ -10,27 +10,27 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    // Registro de usuário
+    // REGISTRO
     public function register(Request $request)
     {
         $request->validate([
             'nome'     => 'required|string|max:255',
-            'nif'     => 'required|string|max:255',
+            'nif'      => 'required|string|max:255',
             'email'    => 'required|string|email|max:255|unique:users',
-            'senha' => 'required|string|min:6',
-            'telfoene'    => 'nullable|string|max:20',
+            'senha'    => 'required|string|min:6',
+            'telefone' => 'nullable|string|max:20',
             'role'     => 'in:cliente,gestor,admin,master,vendedor',
             'activo'   => 'boolean'
         ]);
 
         $user = User::create([
             'nome'     => $request->nome,
-            'nif'     => $request->nif,
+            'nif'      => $request->nif,
             'email'    => $request->email,
-            'password' => Hash::make($request->senha),
-            'telfoene'    => $request->telfoene,
+            'senha'    => Hash::make($request->senha),
+            'telefone' => $request->telefone,
             'role'     => $request->role ?? 'cliente',
-            'activo'   =>  $request->activo,
+            'activo'   => $request->activo ?? true,
         ]);
 
         return response()->json([
@@ -39,30 +39,29 @@ class AuthController extends Controller
         ], 201);
     }
 
-    // Login do usuário
+    // LOGIN
     public function login(Request $request)
     {
         $request->validate([
-            'login'    => 'required|string',
+            'login' => 'required|string',
             'senha' => 'required|string',
         ]);
 
         $user = User::where('email', $request->login)
-            ->orWhere('telfoene', $request->login)
+            ->orWhere('telefone', $request->login)
             ->first();
 
-        if (! $user || ! Hash::check($request->senha, $user->password)) {
+        if (! $user || ! Hash::check($request->senha, $user->senha)) {
             throw ValidationException::withMessages([
-                'email' => ['As credenciais fornecidas estão incorretas.'],
-            ]);
-        }
-        
-        if (! $user->activo) {
-            throw ValidationException::withMessages([
-                'email' => ['A sua conta está desativada. Contacte o administrador.'],
+                'login' => ['Credenciais inválidas.'],
             ]);
         }
 
+        if (! $user->activo) {
+            throw ValidationException::withMessages([
+                'login' => ['Conta desativada.'],
+            ]);
+        }
 
         $token = $user->createToken('token')->plainTextToken;
 
@@ -75,14 +74,17 @@ class AuthController extends Controller
         ]);
     }
 
-    // Logout
+    // LOGOUT
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
 
-        return response()->json(['message' => 'Logout efetuado com sucesso.']);
+        return response()->json([
+            'message' => 'Logout efetuado com sucesso.'
+        ]);
     }
 
+    // FORGOT PASSWORD
     public function forgotPassword(Request $request)
     {
         $request->validate([
@@ -94,19 +96,20 @@ class AuthController extends Controller
         );
 
         return $status === Password::RESET_LINK_SENT
-            ? response()->json(['message' => 'Link de redefinição enviado para seu e-mail.'])
-            : response()->json(['message' => 'Erro ao enviar o link.'], 500);
+            ? response()->json(['message' => 'Link enviado para o email.'])
+            : response()->json(['message' => 'Erro ao enviar link.'], 500);
     }
 
+    // RESET PASSWORD
     public function resetPassword(Request $request)
     {
         $request->validate([
-            'email'    => 'required|email',
+            'email' => 'required|email',
             'senha' => 'required|string|min:6|confirmed',
         ]);
 
         $status = Password::reset(
-            $request->only('email', 'senha', 'senha_confirmation',),
+            $request->only('email', 'senha', 'senha_confirmation'),
             function ($user, $password) {
                 $user->forceFill([
                     'senha' => Hash::make($password),
@@ -119,6 +122,7 @@ class AuthController extends Controller
             : response()->json(['message' => 'Erro ao redefinir senha.'], 500);
     }
 
+    // CHANGE PASSWORD
     public function changePassword(Request $request)
     {
         $request->validate([
@@ -129,72 +133,61 @@ class AuthController extends Controller
         $user = $request->user();
 
         if (! Hash::check($request->current_password, $user->senha)) {
-            return response()->json(['message' => 'Senha atual incorreta.'], 400);
+            return response()->json([
+                'message' => 'Senha atual incorreta.'
+            ], 400);
         }
 
         $user->update([
-            'password' => Hash::make($request->new_password),
+            'senha' => Hash::make($request->new_password),
         ]);
 
-        return response()->json(['message' => 'Senha alterada com sucesso.',  $user]);
+        return response()->json([
+            'message' => 'Senha alterada com sucesso.',
+            'user' => $user
+        ]);
     }
 
+    // LIST USERS
     public function listUsersAllowed()
     {
-        // Lista apenas os roles permitidos
         $allowedRoles = ['gestor', 'admin', 'vendedor'];
 
         $users = User::whereIn('role', $allowedRoles)
-            ->orderBy('name', 'asc')
+            ->orderBy('nome', 'asc')
             ->get();
 
         return response()->json([
             'message' => 'Lista de usuários carregada com sucesso.',
             'users'   => $users
-        ], 200);
+        ]);
     }
 
+    // UPDATE USER
     public function updateUser(Request $request, $id)
     {
-        // Validar o request
         $request->validate([
             'nome'     => 'sometimes|string|max:255',
             'email'    => 'sometimes|string|email|max:255|unique:users,email,' . $id,
-            'telefone'    => 'sometimes|string|max:20',
+            'telefone' => 'sometimes|string|max:20',
             'role'     => 'sometimes|in:cliente,gestor,admin,master,vendedor',
             'activo'   => 'sometimes|boolean',
-            'senha' => 'sometimes|string|min:6',
+            'senha'    => 'sometimes|string|min:6',
         ]);
 
-        // Buscar o usuário
         $user = User::find($id);
 
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'message' => 'Usuário não encontrado.'
             ], 404);
         }
 
-        // Atualizar os dados
-        if ($request->has('nome')) {
-            $user->nome = $request->nome;
-        }
-
-        if ($request->has('email')) {
-            $user->email = $request->email;
-        }
-
-        if ($request->has('telefone')) {
-            $user->telefone = $request->telefone;
-        }
-
-        if ($request->has('role')) {
-            $user->role = $request->role;
-        }
-
-        if ($request->has('activo')) {
-            $user->activo = $request->activo;
-        }
+        if ($request->has('nome')) $user->nome = $request->nome;
+        if ($request->has('email')) $user->email = $request->email;
+        if ($request->has('telefone')) $user->telefone = $request->telefone;
+        if ($request->has('role')) $user->role = $request->role;
+        if ($request->has('activo')) $user->activo = $request->activo;
 
         if ($request->has('senha') && !empty($request->senha)) {
             $user->senha = Hash::make($request->senha);
@@ -204,7 +197,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Usuário atualizado com sucesso.',
-            'user'    => $user
-        ], 200);
+            'user' => $user
+        ]);
     }
 }

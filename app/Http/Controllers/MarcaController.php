@@ -2,18 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\marca;
+use App\Models\Marca;
 use Illuminate\Http\Request;
 
 class MarcaController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         return Marca::all();
     }
+
     public function listaMarcas()
     {
         $marcas = Marca::withCount('modelos')->get();
@@ -27,9 +25,7 @@ class MarcaController extends Controller
             ];
         });
     }
-    /**
-     * Show the form for creating a new resource.
-     */
+
     public function create(Request $request)
     {
         $data = $request->validate([
@@ -40,11 +36,11 @@ class MarcaController extends Controller
         return Marca::create($data);
     }
 
-    
     public function show($id)
     {
         return Marca::with('modelos')->findOrFail($id);
     }
+
     public function update(Request $request, $id)
     {
         $marca = Marca::findOrFail($id);
@@ -55,15 +51,16 @@ class MarcaController extends Controller
         ]);
 
         $marca->update($data);
+
         return $marca;
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy($id)
     {
         Marca::destroy($id);
-        return response()->json(['message' => 'Marca removida com sucesso.']);
+
+        return response()->json([
+            'message' => 'Marca removida com sucesso.'
+        ]);
     }
 }

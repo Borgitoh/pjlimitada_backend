@@ -4,14 +4,30 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Marca;
+use App\Models\Produto;
+
 
 class Modelo extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nome', 'marca_id', 'ativo', 'version', 'year'];
+    protected $table = 'modelos';
 
-    protected $appends = ['name', 'brandId', 'year', 'version', 'active'];
+    protected $fillable = [
+        'nome',
+        'marca_id',
+        'ativo',
+        'version',
+        'year'
+    ];
+
+    // apenas campos customizados (ACCESSORS)
+    protected $appends = [
+        'name',
+        'brandId',
+        'active'
+    ];
 
     public function produtos()
     {
@@ -23,6 +39,7 @@ class Modelo extends Model
         return $this->belongsTo(Marca::class);
     }
 
+    // ACCESSORS CORRETOS
     public function getNameAttribute()
     {
         return $this->nome;
@@ -33,18 +50,8 @@ class Modelo extends Model
         return $this->marca_id;
     }
 
-    public function getYearAttribute()
-    {
-        return $this->attributes['year'];
-    }
-
-    public function getVersionAttribute()
-    {
-        return $this->attributes['version'];
-    }
-
     public function getActiveAttribute()
     {
-        return $this->attributes['ativo'];
+        return (bool) $this->ativo;
     }
 }
